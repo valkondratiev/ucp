@@ -1,0 +1,57 @@
+
+.app_button button{
+    padding:0;
+    text-align: center;
+}
+
+.border_form{
+    border-style:outset;
+    border-width: 5px !important;
+    border-color: #268fd5;
+    height:268px !important;
+}
+
+.webix_img_btn, .webix_img_btn_abs {
+    text-align: center;
+}
+
+.logo button:hover {
+    background-color: white !important;
+
+}
+
+.webix_image {
+    width: 600px !important;
+}
+
+
+.fa-power-off:hover{
+    color: red !important;
+}
+.header{
+    background-image: url(../img/fon1.png)!important;
+    margin: 0 !important; /* Убираем отступы */
+    background-size: cover !important;
+}
+.hi div{
+    color: white;
+}
+
+.img{
+    display: block;
+    margin: 0 auto;
+}
+p {
+    text-indent: 20px; /* Отступ первой строки в пикселах */
+}
+.table-responsive{
+    min-height: .01%;
+    overflow-x: auto;
+    border-spacing: 0;
+    border-collapse: collapse;
+    background-color: transparent;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    outline: none;
+}
