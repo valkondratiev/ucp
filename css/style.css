@@ -8,7 +8,7 @@
     border-style:outset;
     border-width: 5px !important;
     border-color: #268fd5;
-    height:268px !important;
+    height:285px !important;
 }
 
 .webix_img_btn, .webix_img_btn_abs {
@@ -54,4 +54,7 @@ p {
     padding: 0px;
     border: none;
     outline: none;
+}
+.webix_inp_bottom_label{
+    margin: auto !important;
 }

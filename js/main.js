@@ -6,7 +6,9 @@ var menu_data_multi  = [
 ];
 webix.protoUI({ name:'activeTable'}, webix.ui.datatable, webix.ActiveContent );
 function addToWay() {
-    if (true/*$$("form").validate()*/) {
+    $$("form").markInvalid("point2", "");
+    $$("form").markInvalid("distance", "");
+    if ($$("form").validate()) {
      var idItem=$$("way_table").add($$('form').getValues());
      var position=$$("way_table").getIndexById(idItem)+1;
      $$("way_table").updateItem(idItem,{pos:position});
@@ -41,97 +43,125 @@ function delLine(){
 
 function saveWay() {
     if($$("way_table").getLastId()!=undefined){
+        //var data = JSON.stringify($$("way_table").serialize(), "", "\t");
         var data = JSON.stringify($$("way_table").serialize(), "", "\t");
-        webix.ajax().post("http://localhost:8080/mymarket/manager/addway", data );
-
+        var sendData='{"data":'+data+'}';
+        webix.ajax().headers({'Content-Type':'application/json','Accept':'application/json'}).post("http://localhost:7777/logist/kfc/brands", sendData );
     }
     else
         webix.message({type: "error", text: "Заполните маршрут!!!"});
 }
 var add= {id:"new_way",type: "space", rows:[
 
-    {
+        {
 
-        view:"form",
-        id:"form",
-        name:"form",
-        margin:20,
+            view: "form",
+            id: "form",
+            name: "form",
+            margin: 20,
 
-        elements:[
-            {
-                options: [
-                    "Минск",
-                    "Москва",
-                    "Брест",
-                    "Витебск",
-                    "Воронеж",
-                    "Амстердам",
-                    "Прага",
-                    "Вашингтон",
-                    "Владимир"
-                ],
-                view: "richselect",
-                align:"center",
-                label:"Точка А :",
-                id:"point1",
-                name:"point1",
-                width: 500,
-                value: "Минск"
-            },
-            {
-                options: [
-                    "Минск",
-                    "Москва",
-                    "Брест",
-                    "Витебск",
-                    "Воронеж",
-                    "Амстердам",
-                    "Прага",
-                    "Вашингтон",
-                    "Владимир"
-                ],
-                view: "richselect",
-                align:"center",
-                label:"Точка B :",
-                id:"point2",
-                name:"point2",
-                width: 500,
-                value: "Минск"
-            },
-            {
-                view: "text",
-                align:"center",
-                id:"distance",
-                name:"distance",
-                label: "Расстояние :",
-                labelWidth:95,
-                width: 200
-            },
-            {
-                options: [
-                    {id:"Авто",value:" <span class='fas fa-truck'></span> Авто",},
-                    {id:"Самолет",value:"<span class='fas fa-plane'></span> Самолет",},
-                    {id:"ЖД",value: "<span class='fas fa-train'></span> ЖД"},
-                    {id:"Судно",value:"<span class='fas fa-ship'></span> Судно"},
-                ],
-                view: "segmented",
-                id:"transport",
-                name:"transport",
-                align:"center",
-                width: 350,
-                value: "ЖД"
-            },
+            elements: [
+                {
+                    options: [
+                        "Минск",
+                        "Москва",
+                        "Брест",
+                        "Витебск",
+                        "Воронеж",
+                        "Амстердам",
+                        "Прага",
+                        "Вашингтон",
+                        "Владимир"
+                    ],
+                    view: "richselect",
+                    required:true,
+                    align: "center",
+                    label: "Точка А :",
+                    id: "point1",
+                    name: "point1",
+                    width: 500,
+                    value: "Минск"
+                },
+                {
+                    options: [
+                        "Минск",
+                        "Москва",
+                        "Брест",
+                        "Витебск",
+                        "Воронеж",
+                        "Амстердам",
+                        "Прага",
+                        "Вашингтон",
+                        "Владимир"
+                    ],
+                    view: "richselect",
+                    align: "center",
+                    label: "Точка B :",
+                    required:true,
+                    id: "point2",
+                    name: "point2",
+                    bottomPadding: 18,
+                    width: 500,
+                    value: "Минск"
+                },
+                {
+                    view: "text",
+                    align: "center",
+                    id: "distance",
+                    attributes: {maxlength: 5},
+                    name: "distance",
+                    label: "Расстояние :",
+                    validate: webix.rules.isNumber,
+                    invalidMessage: "Введите чило",
+                    labelWidth: 95,
+                    width: 200,
+                    bottomPadding: 18,
+                },
+                {
+                    options: [
+                        {id: "Авто", value: " <span class='fas fa-truck'></span> Авто",},
+                        {id: "Самолет", value: "<span class='fas fa-plane'></span> Самолет",},
+                        {id: "ЖД", value: "<span class='fas fa-train'></span> ЖД"},
+                        {id: "Судно", value: "<span class='fas fa-ship'></span> Судно"},
+                    ],
+                    view: "segmented",
+                    id: "transport",
+                    name: "transport",
+                    align: "center",
+                    width: 350,
+                    value: "ЖД"
+                },
 
-            {
-                label: "Добавить в маршрут",
-                align:"center",
-                view: "button",
-                width: 500,
-                click:addToWay,
-            },
+                {
+                    label: "Добавить в маршрут",
+                    align: "center",
+                    view: "button",
+                    width: 500,
+                    click: addToWay,
+                },
 
-        ]
-    },
+            ],
+            rules: {
+
+                point2: function (value) {
+                    if (value == $$('point1').getValue() && value!="" && ($$('point1').getValue())!="" ) {
+                        $$("form").markInvalid("point2", "Точки должны быть разные");
+                        return false;
+                    }
+                    return true;
+
+                },
+                distance: function (value) {
+                    if (value > 20000) {
+                        $$("form").markInvalid("distance", "< 20000км");
+                        return false;
+                    }
+                    return true;
+
+                },
+
+            }
+        },
         {
             view: "activeTable",
             id:"way_table",
@@ -142,7 +172,7 @@ var add= {id:"new_way",type: "space", rows:[
                 { id:"point2",    header:"Точка B" ,width:300  } ,
                 { id:"distance",   header:"Расстояние",width:155 },
                 { id:"transport",   header:"Транспорт" ,width:100},
-                { id: "del", header: "&nbsp;", template: "{common.yourButton()}",  width:50, },
+                { id: "del", header: "&nbsp;", template: "{common.yourButton()}",  width:50,},
             ],
             activeContent: {
                 yourButton: {
@@ -168,6 +198,18 @@ var add= {id:"new_way",type: "space", rows:[
 
         },
     ],};
+
+
+function addPoint() {
+   if( $$("point_form").validate()){
+       var formData=$$("point_form").getValues();
+       var pointdata = JSON.stringify(formData, "", "\t");
+       webix.ajax().headers({'Content-Type':'application/json','Accept':'application/json'}).post("http://localhost:8080/mymarket/manager/addpoint", pointdata);
+   };
+}
+function trash() {
+    if( $$("point_form").clear());
+}
 var point= {
     id:"new_point",
     rows:[
@@ -186,27 +228,42 @@ var point= {
         view:"form",
         css:"border_form",
         id:"point_form",
-        margin:30,
+        margin:20,
         width:600,
         elements:[
         {
             view: "text",
             width: 400,
+            id:"country",
+            name:"country",
             align:"center",
+            attributes: {maxlength: 50},
+            required:true,
             label:"Страна:",
+            bottomPadding: 18,
         },
         {
             view: "text",
             width: 400,
+            id:"region",
+            name:"region",
+            attributes: {maxlength: 50},
             align:"center",
-            label:"Область:"
+            label:"Область:",
+            bottomPadding: 18,
         },
         {
             view: "text",
             width: 400,
+            id:"city",
+            name:"city",
             align:"center",
-            label:"Город:"
+            attributes: {maxlength: 50},
+            required:true,
+            label:"Город:",
+            bottomPadding: 18,
         },
+
         {
             cols:[{},
                 {
@@ -215,6 +272,7 @@ var point= {
                 type: "iconButton",
                 icon:"wxi-trash",
                 width:200,
+                click:trash,
                 },
                 {width:20},
                 {
@@ -223,10 +281,41 @@ var point= {
                     type: "iconButton",
                     icon:"far fa-save",
                     width:200,
+                    click:addPoint,
                 },{},
             ]
         },
-    ]},
+    ],
+
+   rules: {
+
+       country: function (value) {
+            if (!(/^[.а-яА-ЯёЁ\s]{0,}$/i.test(value))) {
+                $$("point_form").markInvalid("country", "Только буквы русского алфавита");
+                return false;
+            }
+           $$("point_form").markInvalid("country", "");
+           return true;
+      },
+       city: function (value) {
+           if (!(/^[.а-яА-ЯёЁ\s]{0,}$/i.test(value))) {
+               $$("point_form").markInvalid("city", "Только буквы русского алфавита");
+               return false;
+           }
+           $$("point_form").markInvalid("city", "");
+            return true;
+       },
+       region: function (value) {
+           if (!(/^[.а-яА-ЯёЁ\s]{0,}$/i.test(value))) {
+               $$("point_form").markInvalid("region", "Только буквы русского алфавита");
+               return false;
+           }
+           $$("point_form").markInvalid("region", "");
+           return true;
+       }
+   }
+
+   },
                 {},
             ]},
         {},
@@ -377,5 +466,6 @@ webix.ready(function(){
                 ]},
         ]
     });
+
 
 });
