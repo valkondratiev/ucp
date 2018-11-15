@@ -9,13 +9,13 @@ function addToWay() {
     $$("form").markInvalid("point2", "");
     $$("form").markInvalid("distance", "");
     if ($$("form").validate()) {
-     var idItem=$$("way_table").add($$('form').getValues());
-     var position=$$("way_table").getIndexById(idItem)+1;
-     $$("way_table").updateItem(idItem,{pos:position});
-     $$('point1').setValue($$('form').getValues().point2);
-     $$("point1").define("readonly", true);
-     $$('point2').setValue("");
-     $$('distance').setValue("");
+        var idItem=$$("way_table").add($$('form').getValues());
+        var position=$$("way_table").getIndexById(idItem)+1;
+        $$("way_table").updateItem(idItem,{pos:position});
+        $$('point1').setValue($$('form').getValues().point2);
+        $$("point1").define("readonly", true);
+        $$('point2').setValue("");
+        $$('distance').setValue("");
     }
 };
 
@@ -23,7 +23,7 @@ function delLine(){
     var row=(this.data.$masterId.row);
     var curId="";
     if(row==$$("way_table").getLastId())
-    $$("way_table").remove(row);
+        $$("way_table").remove(row);
     else {
         while (row!=curId) {
             $$("way_table").remove($$("way_table").getLastId());
@@ -46,7 +46,7 @@ function saveWay() {
         //var data = JSON.stringify($$("way_table").serialize(), "", "\t");
         var data = JSON.stringify($$("way_table").serialize(), "", "\t");
         var sendData='{"data":'+data+'}';
-        webix.ajax().headers({'Content-Type':'application/json','Accept':'application/json'}).post("http://localhost:7777/logist/kfc/brands", sendData );
+        webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/addway", sendData );
     }
     else
         webix.message({type: "error", text: "Заполните маршрут!!!"});
@@ -201,11 +201,11 @@ var add= {id:"new_way",type: "space", rows:[
 
 
 function addPoint() {
-   if( $$("point_form").validate()){
-       var formData=$$("point_form").getValues();
-       var pointdata = JSON.stringify(formData, "", "\t");
-       webix.ajax().headers({'Content-Type':'application/json','Accept':'application/json'}).post("http://localhost:8080/mymarket/manager/addpoint", pointdata);
-   };
+    if( $$("point_form").validate()){
+        var formData=$$("point_form").getValues();
+        var pointdata = JSON.stringify(formData, "", "\t");
+        webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/addpoin", pointdata);
+    };
 }
 function trash() {
     if( $$("point_form").clear());
@@ -220,102 +220,102 @@ var point= {
             height:350,
             align:"center",
             css: "logo",
-            },
+        },
         {
             cols:[
                 {},
                 {
-        view:"form",
-        css:"border_form",
-        id:"point_form",
-        margin:20,
-        width:600,
-        elements:[
-        {
-            view: "text",
-            width: 400,
-            id:"country",
-            name:"country",
-            align:"center",
-            attributes: {maxlength: 50},
-            required:true,
-            label:"Страна:",
-            bottomPadding: 18,
-        },
-        {
-            view: "text",
-            width: 400,
-            id:"region",
-            name:"region",
-            attributes: {maxlength: 50},
-            align:"center",
-            label:"Область:",
-            bottomPadding: 18,
-        },
-        {
-            view: "text",
-            width: 400,
-            id:"city",
-            name:"city",
-            align:"center",
-            attributes: {maxlength: 50},
-            required:true,
-            label:"Город:",
-            bottomPadding: 18,
-        },
+                    view:"form",
+                    css:"border_form",
+                    id:"point_form",
+                    margin:20,
+                    width:600,
+                    elements:[
+                        {
+                            view: "text",
+                            width: 400,
+                            id:"country",
+                            name:"country",
+                            align:"center",
+                            attributes: {maxlength: 50},
+                            required:true,
+                            label:"Страна:",
+                            bottomPadding: 18,
+                        },
+                        {
+                            view: "text",
+                            width: 400,
+                            id:"region",
+                            name:"region",
+                            attributes: {maxlength: 50},
+                            align:"center",
+                            label:"Область:",
+                            bottomPadding: 18,
+                        },
+                        {
+                            view: "text",
+                            width: 400,
+                            id:"city",
+                            name:"city",
+                            align:"center",
+                            attributes: {maxlength: 50},
+                            required:true,
+                            label:"Город:",
+                            bottomPadding: 18,
+                        },
 
-        {
-            cols:[{},
-                {
-                label: "Очистить",
-                view: "button",
-                type: "iconButton",
-                icon:"wxi-trash",
-                width:200,
-                click:trash,
+                        {
+                            cols:[{},
+                                {
+                                    label: "Очистить",
+                                    view: "button",
+                                    type: "iconButton",
+                                    icon:"wxi-trash",
+                                    width:200,
+                                    click:trash,
+                                },
+                                {width:20},
+                                {
+                                    label: "Сохранить",
+                                    view: "button",
+                                    type: "iconButton",
+                                    icon:"far fa-save",
+                                    width:200,
+                                    click:addPoint,
+                                },{},
+                            ]
+                        },
+                    ],
+
+                    rules: {
+
+                        country: function (value) {
+                            if (!(/^[.а-яА-ЯёЁ\s]{0,}$/i.test(value))) {
+                                $$("point_form").markInvalid("country", "Только буквы русского алфавита");
+                                return false;
+                            }
+                            $$("point_form").markInvalid("country", "");
+                            return true;
+                        },
+                        city: function (value) {
+                            if (!(/^[.а-яА-ЯёЁ\s]{0,}$/i.test(value))) {
+                                $$("point_form").markInvalid("city", "Только буквы русского алфавита");
+                                return false;
+                            }
+                            $$("point_form").markInvalid("city", "");
+                            return true;
+                        },
+                        region: function (value) {
+                            if (!(/^[.а-яА-ЯёЁ\s]{0,}$/i.test(value))) {
+                                $$("point_form").markInvalid("region", "Только буквы русского алфавита");
+                                return false;
+                            }
+                            $$("point_form").markInvalid("region", "");
+                            return true;
+                        }
+                    }
+
                 },
-                {width:20},
-                {
-                    label: "Сохранить",
-                    view: "button",
-                    type: "iconButton",
-                    icon:"far fa-save",
-                    width:200,
-                    click:addPoint,
-                },{},
-            ]
-        },
-    ],
-
-   rules: {
-
-       country: function (value) {
-            if (!(/^[.а-яА-ЯёЁ\s]{0,}$/i.test(value))) {
-                $$("point_form").markInvalid("country", "Только буквы русского алфавита");
-                return false;
-            }
-           $$("point_form").markInvalid("country", "");
-           return true;
-      },
-       city: function (value) {
-           if (!(/^[.а-яА-ЯёЁ\s]{0,}$/i.test(value))) {
-               $$("point_form").markInvalid("city", "Только буквы русского алфавита");
-               return false;
-           }
-           $$("point_form").markInvalid("city", "");
-            return true;
-       },
-       region: function (value) {
-           if (!(/^[.а-яА-ЯёЁ\s]{0,}$/i.test(value))) {
-               $$("point_form").markInvalid("region", "Только буквы русского алфавита");
-               return false;
-           }
-           $$("point_form").markInvalid("region", "");
-           return true;
-       }
-   }
-
-   },
                 {},
             ]},
         {},
@@ -331,9 +331,13 @@ var ways={
             id:"way_inf",
             scrollX: false,
             select: "row",
-
+            url:function(){
+                return webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/allways").then(function(data){
+                    return data.json();
+                });
+            },
             columns:[
-                { id:"number",header:"№" ,width:70},
+                { id:"id",header:"№" ,width:70},
                 { id:"pointA",   header:"Начальная точка" ,width:300 },
                 { id:"pointB",    header:"Конечная точка" ,width:300  } ,
                 { id:"dist",   header:"Длина",width:155 },
@@ -351,11 +355,11 @@ var ways={
                     icon:'wxi-trash',
                 },
             },
-            data: [
-                { number:1, pointA:"Минск", pointB:"Владивосток", dist:14390,cost:12300,time:"3-5 дней"},
-                { number:2, pointA:"Москва", pointB:"Берлин", dist:1800,cost:8300,time:"1 день"},
-
-            ]
+            // data: [
+            //     { number:1, pointA:"Минск", pointB:"Владивосток", dist:14390,cost:12300,time:"3-5 дней"},
+            //     { number:2, pointA:"Москва", pointB:"Берлин", dist:1800,cost:8300,time:"1 день"},
+            //
+            // ]
         },
 
         {
