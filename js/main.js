@@ -321,6 +321,19 @@ var point= {
         {},
     ]
 };
+function deleteWay() {
+    row=this.data.$masterId.row;
+    var idWay=$$("way_inf").getItem(row).id;
+    webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).delete("http://localhost:8080/way/"+idWay).then(function (result) {
+        if (result.json().success == true) {
+            webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+            $$("way_inf").remove($$("way_inf").getSelectedId());
+            //если нужно очистить нижнюю таблицу
+        } else {
+            webix.message({type: 'error', text: result.json().message});
+        };})
+
+}
 var ways={
     id: "way",
     type:"space",
@@ -353,13 +366,40 @@ var ways={
                     height:"32",
                     type:'icon',
                     icon:'wxi-trash',
+                    click:deleteWay,
                 },
             },
-            // data: [
-            //     { number:1, pointA:"Минск", pointB:"Владивосток", dist:14390,cost:12300,time:"3-5 дней"},
-            //     { number:2, pointA:"Москва", pointB:"Берлин", dist:1800,cost:8300,time:"1 день"},
-            //
-            // ]
+            on: {
+                onItemClick: function () {
+                    var me = this,
+                        obj = me.getSelectedItem(),
+                        id = obj.id;
+                    webix.ajax().headers({"Accept": "application/json"}).get("http://localhost:8080/way/"+id).then(function (result) {
+                        if (result.json().success == true) {
+                            $$("way_info").clearAll();
+                            const lines = result.json().data;
+                            $$("way_info").parse({
+                                pos: $$("way_info").count(),
+                                data: lines,
+                            });
+                            webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+                        } else {
+                            webix.message({type: 'error', text: result.json().message});
+                        }
+                        ;
+                    }).fail(function (xhr) {
+                        var response = JSON.parse(xhr.response);
+                        webix.message({type: 'error', text: response.message});
+                        $$("main").hideProgress();
+                    });
+
+                }
+            },
+            data: [
+                { id:1, pointA:"Минск", pointB:"Владивосток", dist:14390,cost:12300,time:"3-5 дней"},
+                { id:2, pointA:"Москва", pointB:"Берлин", dist:1800,cost:8300,time:"1 день"},
+
+            ]
         },
 
         {
@@ -382,6 +422,29 @@ var ways={
     ]
 
 };
+function confirmOrder() {
+    row=this.data.$masterId.row;
+    var idOrder=$$("order_inf").getItem(row).number;
+    webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/order/"+idOrder+"/confirm").then(function (result) {
+        if (result.json().success == true) {
+            webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+            // добавить перегруз таблы
+        } else {
+            webix.message({type: 'error', text: result.json().message});
+        };})
+}
+function failOrder() {
+    row=this.data.$masterId.row;
+    var idOrder=$$("order_inf").getItem(row).number;
+    webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/order/"+idOrder+"/fail").then(function (result) {
+        if (result.json().success == true) {
+            webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+            // добавить перегруз таблы  clear parse
+        } else {
+            webix.message({type: 'error', text: result.json().message});
+        };})
+
+}
 var orders ={
     id:"orders",
     type:"space",
@@ -410,6 +473,7 @@ var orders ={
                     height:"32",
                     type:'icon',
                     icon:'fas fa-check-double',
+                    click:confirmOrder,
                 },
                 del:{
                     view: "button",
@@ -418,6 +482,7 @@ var orders ={
                     height:"32",
                     type:'icon',
                     icon:'fas fa-times',
+                    click:failOrder,
 
                 }
             },
