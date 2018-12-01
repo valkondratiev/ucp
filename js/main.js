@@ -1,3 +1,4 @@
+var list=["Минск"];
 var menu_data_multi  = [
     {id: "orders", icon: "wxi-check",value:"Заказы"},
     {id: "way", icon: "fas fa-globe", value:"Маршруты"},
@@ -62,39 +63,30 @@ var add= {id:"new_way",type: "space", rows:[
 
             elements: [
                 {
-                    options: [
-                        "Минск",
-                        "Москва",
-                        "Брест",
-                        "Витебск",
-                        "Воронеж",
-                        "Амстердам",
-                        "Прага",
-                        "Вашингтон",
-                        "Владимир"
-                    ],
-                    view: "richselect",
+                    view: "combo",
                     required:true,
                     align: "center",
                     label: "Точка А :",
                     id: "point1",
                     name: "point1",
                     width: 500,
-                    value: "Минск"
+                    value: "Минск",
+                    options: list,
+                    on:{
+                        'onItemClick':function () {
+                            webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/allPoints", function(text,data){
+                                var options = data.json().data;
+                                var list = $$("point1").getPopup().getList();
+                                list.clearAll();
+                                list.parse(options);
+                            });
+
+                        }
+                    }
+
                 },
                 {
-                    options: [
-                        "Минск",
-                        "Москва",
-                        "Брест",
-                        "Витебск",
-                        "Воронеж",
-                        "Амстердам",
-                        "Прага",
-                        "Вашингтон",
-                        "Владимир"
-                    ],
-                    view: "richselect",
+                    view: "combo",
                     align: "center",
                     label: "Точка B :",
                     required:true,
@@ -102,7 +94,8 @@ var add= {id:"new_way",type: "space", rows:[
                     name: "point2",
                     bottomPadding: 18,
                     width: 500,
-                    value: "Минск"
+                    value: "Минск",
+                    options:["one","two","three","four","five","six","seven","eight","nine","ten","eleven"],
                 },
                 {
                     view: "text",
@@ -204,7 +197,12 @@ function addPoint() {
     if( $$("point_form").validate()){
         var formData=$$("point_form").getValues();
         var pointdata = JSON.stringify(formData, "", "\t");
-        webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/addpoin", pointdata);
+        webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/addpoin", pointdata).then(function (result) {
+            if (result.json().success == true) {
+                webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+            } else {
+                webix.message({type: 'error', text: result.json().message});
+            };});
     };
 }
 function trash() {
