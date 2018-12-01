@@ -426,7 +426,7 @@ function confirmOrder() {
     webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/order/"+idOrder+"/confirm").then(function (result) {
         if (result.json().success == true) {
             webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
-            // добавить перегруз таблы
+            // добавить перегруз таблы или удалить строку без перегруза!
         } else {
             webix.message({type: 'error', text: result.json().message});
         };})
