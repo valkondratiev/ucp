@@ -4,6 +4,7 @@ var menu_data_multi  = [
     {id: "way", icon: "fas fa-globe", value:"Маршруты"},
     {id: "new_way", icon: "fas fa-location-arrow",value:"Создать маршрут"},
     {id:"new_point", icon:"fas fa-map-marked-alt", value:"Добавить точку"},
+    {id:"user_manage", icon:"fas fa-users", value:"Управление пользователями"},
 ];
 webix.protoUI({ name:'activeTable'}, webix.ui.datatable, webix.ActiveContent );
 function addToWay() {
@@ -496,6 +497,96 @@ var orders ={
         },],
 
 }
+var us={
+    id:"user_manage",
+    type:'space',
+    cols:[{},{
+    rows:[
+        {height:30},
+
+        {
+            view: "toolbar",
+            css:"header_user",
+            height:30,
+            cols: [
+                {view: "label", label: "Пользователи", align: "left", css: "header_font"},
+                {},
+
+            ]
+        },
+        {
+            view: "activeTable",
+            width:460,
+            height:500,
+            id:"active_user",
+            scrollX: false,
+            columns:[
+                { id:"login",    header:"Логин" ,width:100},
+                { id:"fio",   header:"ФИО" ,width:300 },
+                { id: "block", header: "&nbsp;", template: "{common.yourButton()}",  width:40,},
+            ],
+            activeContent: {
+                yourButton: {
+                    view: "button",
+                    id:"blockButton",
+                    width:"30",
+                    height:"32",
+                    type:'icon',
+                    icon:'fas fa-lock',
+                    tooltip:"Заблокировать"
+                    //click:delLine,
+                },
+            },
+            data: [
+                 { login:"user123", fio:"Иванов Иван Иванович"},
+                 { login:"user777", fio:"Петров Петр Петрович"},
+                 { login:"vovka", fio:"Сидоров Владимир Сергеевич "},
+
+            ]
+        },
+        {height:20},
+        {
+            view: "toolbar",
+            css:"header_blockuser",
+            height:30,
+            cols: [
+                {view: "label", label: "Заблокированные", align: "left", css: "header_font"},
+                {},
+
+            ]
+        },
+        {
+            view: "activeTable",
+            width:460,
+            height:200,
+            id:"block_user",
+            scrollX: false,
+            columns:[
+                { id:"login",    header:"Логин" ,width:100},
+                { id:"fio",   header:"ФИО" ,width:300 },
+                { id: "unblock", header: "&nbsp;", template: "{common.yourButton()}",  width:40,},
+            ],
+            activeContent: {
+                yourButton: {
+                    view: "button",
+                    id:"unblockButton",
+                    width:"30",
+                    height:"32",
+                    type:'icon',
+                    icon:'fas fa-lock-open',
+                    tooltip:"Разблокировать"
+                    //click:delLine,
+                },
+            },
+            data: [
+                { login:"user3445", fio:"Иванов Иван Иванович"},
+                { login:"valk20", fio:"Петров Петр Петрович"},
+                { login:"qwe123", fio:"Сидоров Владимир Сергеевич "},
+
+            ]
+        },
+    ]},{}]
+}
 webix.ready(function(){
     webix.ui({
         rows: [
@@ -528,6 +619,7 @@ webix.ready(function(){
                             point,
                             ways,
                             orders,
+                            us,
                         ]
                     },
                 ]},

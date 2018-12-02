@@ -58,3 +58,14 @@ p {
 .webix_inp_bottom_label{
     margin: auto !important;
 }
+
+
+.header_font {
+    font-weight: 900;
+}
+.header_user{
+    background: #fdbf4c !important;
+}
+.header_blockuser{
+    background: red !important;
+}
