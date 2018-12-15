@@ -1,63 +1,158 @@
+var list=["Минск"];
 webix.protoUI({ name:'activeTable'}, webix.ui.datatable, webix.ActiveContent );
+function searchWays() {
+    $$("form").markInvalid("volume","");
+    $$("form").markInvalid("point1","");
+    $$("form").markInvalid("point2","");
+    if( $$("form").validate()){
+        var formData=$$("form").getValues();
+        var searchData = JSON.stringify(formData, "", "\t");
+        webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/search", searchData).then(function (result) {
+            if (result.json().success == true) {
+                webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+                $$("way_inf").clearAll();
+                const offer = result.json().data;
+                $$("way_inf").parse({
+                    pos: $$("way_inf").count(),
+                    data: offer,
+                });
+
+            } else {
+                $$("way_inf").clearAll();
+                webix.message({type: 'error', text: result.json().message});
+            };});
+    };
+
+}
+function newOrder() {
+    row=this.data.$masterId.row;
+    var way_id=$$("way_inf").getItem(row).number;
+    var user="gena";  // взять из session storage!!!!
+    webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/newOrder/"+user+"/"+way_id).then(function (result) {
+        if (result.json().success == true) {
+            webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+            $$("order_inf").clearAll(true);
+            $$("order_inf").loadNext(-1,0);
+        } else {
+            webix.message({type: 'error', text: result.json().message});
+        };})
+
+}
 var search={
     id:"search", rows:[{
         cols:[
                     {
                         view:"form",
                         id:"form",
+                        name:"form",
                         margin:40,
                         width:600,
                         height:390,
 
                         elements:[
-                        {
-                            options: [
-                                "One",
-                                "Two"
-                            ],
-                            view: "select",
-                            value: "One",
-                            align:"center",
-                            label: "Пункт отправления:",
-                            width:500,
-                            labelWidth:150,
-                        },
-                        {
-                            options: [
-                                "One",
-                                "Two"
-                            ],
-                            view: "select",
-                            align:"center",
-                            value: "One",
-                            label: "Пункт назначения:",
-                            width:500,
-                            labelWidth:150,
-                        },
-                        {
-                            view: "text",
-                            align:"center",
-                            label: "Объем груза(м^3):",
-                            width:300,
-                            labelWidth:150,
-                        },
-                        {
-                            view:"button",
-                            align:"center",
-                            label:"Найти",
-                            type: "iconButton",
-                            icon:"fas fa-search",
-                            width:"200",
-                        }
+                            {
+                                view: "combo",
+                                required: true,
+                                align: "center",
+                                label: "Пункт отправления:",
+                                id: "point1",
+                                name: "point1",
+                                width: 500,
+                                labelWidth: 160,
+                                //value: "Минск",
+                                //options: list,
+                                options:["One", "Two", "Three"],
+                                // on: {
+                                //     'onItemClick': function () {
+                                //         webix.ajax().headers({'Accept': 'application/json;charset=utf-8'}).get("http://localhost:8080/allPoints", function (text, data) {
+                                //             var options = data.json().data;
+                                //             var list = $$("point1").getPopup().getList();
+                                //             list.clearAll();
+                                //             list.parse(options);
+                                //         });
+                                //
+                                //     }
+                                // }
 
-                    ]
+                            },
+                            {
+                                view: "combo",
+                                align: "center",
+                                label: "Пункт назначения:",
+                                required:true,
+                                id: "point2",
+                                name: "point2",
+                                bottomPadding: 18,
+                                labelWidth:160,
+                                width: 500,
+                               // value: "Минск",
+                               // options: list,
+                                options:["One", "Two", "Three"],
+                                // on:{
+                                //     'onItemClick':function () {
+                                //         webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/allPoints", function(text,data){
+                                //             var options = data.json().data;
+                                //             var list = $$("point2").getPopup().getList();
+                                //             list.clearAll();
+                                //             list.parse(options);
+                                //         });
+                                //
+                                //     }
+                                // }
+                            },
+                            {
+                                view: "text",
+                                align:"center",
+                                id:"volume",
+                                name:"volume",
+                                attributes: {maxlength: 5},
+                                label: "Объем груза(м^3):",
+                                bottomPadding: 18,
+                                required:true,
+                                width:300,
+                                labelWidth:150,
+                            },
+                            {
+                                view:"button",
+                                align:"center",
+                                label:"Найти",
+                                type: "iconButton",
+                                icon:"fas fa-search",
+                                width:"200",
+                                click:searchWays,
+                            }
+
+                    ],
+                        rules: {
+
+                            point2: function (value) {
+                                if (value==$$('point1').getValue() && value!="") {
+                                    $$("form").markInvalid("point2", "Одинаковый пункт отправления и назначения");
+                                    return false;
+                                }
+                                $$("form").markInvalid("point2", "");
+                                return true;
+                            },
+                            volume: function (value) {
+                                if(webix.rules.isNumber(value)) {
+                                    if (value <= 0) {
+                                        $$("form").markInvalid("volume", ">0");
+                                        return false;
+                                    }
+                                    return true;
+                                }
+                                $$("form").markInvalid("volume", "Введите число");
+                                return false;
+
+                            },
+                        }
             },
 
             {
                 view: "activeTable",
                 id:"way_inf",
                 scrollX: false,
-                select: "row",
+                select: false,
 
                 columns:[
                     { id:"number",header:"№" ,width:70},
@@ -73,6 +168,7 @@ var search={
                         height:"32",
                         type:'icon',
                         icon:'fas fa-shopping-cart',
+                        click:newOrder,
                     },
                 },
                 data: [
@@ -94,14 +190,19 @@ var orderHistory={
             scrollX: false,
             select: "row",
             height:390,
-
+            url:function(){
+                var user="gena";
+                return webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/userOrders/"+user).then(function(data){
+                    return data.json();
+                });
+            },
             columns:[
                 { id:"number",header:"№" ,width:30},
                 { id:"pointA",   header:"Начальная точка" ,width:200 },
                 { id:"pointB",    header:"Конечная точка" ,width:200  } ,
                 { id:"dist",   header:"Длина",width:100 },
                 { id:"cost",   header:"Стоимость",width:100 },
-                { id:"weight",   header:"Масса груза",width:155 },
+                { id:"value",   header:"value",width:155 },
                 { id:"date",   header:"Дата заказа",width:200 },
                 { id:"date_1",   header:"Дата исполнения",width:200 },
                 { id:"manager",   header:"Менеджер",width:155 },
@@ -109,14 +210,46 @@ var orderHistory={
             ],
 
             data: [
-                { number:1, pointA:"Минск", pointB:"Владивосток", dist:14390,cost:12300,time:"3-5 дней",weight:200,date:"20-07-2018 12:45",date_1:"20-07-2018 12:45", manager:"Иванов А.А.",status:"В работе"},
-                { number:2, pointA:"Москва", pointB:"Берлин", dist:1800,cost:8300,time:"1 день",weight:200,date:"20-07-2018 12:45",date_1:"20-07-2018 12:45", manager:"Иванов А.А.",status:"В работе"},
+                { number:1, pointA:"Минск", pointB:"Владивосток", dist:14390,cost:12300,time:"3-5 дней",value:200,date:"20-07-2018 12:45",date_1:"20-07-2018 12:45", manager:"Иванов А.А.",status:"В работе"},
+                { number:2, pointA:"Москва", pointB:"Берлин", dist:1800,cost:8300,time:"1 день",value:200,date:"20-07-2018 12:45",date_1:"20-07-2018 12:45", manager:"Иванов А.А.",status:"В работе"},
 
             ]
         },
     ]
 
 };
+function editUserInf() {
+    if( $$("userForm").validate()){
+        var formData=$$("userForm").getValues();
+        var user="gena";
+        var usInf = JSON.stringify(formData, "", "\t");
+        webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/edit/"+user, usInf).then(function (result) {
+            if (result.json().success == true) {
+                webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+            } else {
+                webix.message({type: 'error', text: result.json().message});
+            };});
+    };
+
+}
+function editPas() {
+    $$("pas").markInvalid("newPas2", "");
+    if( $$("pas").validate()){
+        var pasData=$$("pas").getValues();
+        var user="gena";
+        var changePas = JSON.stringify(pasData, "", "\t");
+        webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/changePas/"+user, changePas).then(function (result) {
+            if (result.json().success == true) {
+                webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+                $$("pas").clear();
+            } else {
+                webix.message({type: 'error', text: result.json().message});
+            };});
+    }
+
+
+
+    }
 var userInfo={
     id:"userInfo",
     height: 390,
@@ -126,25 +259,32 @@ var userInfo={
         cols: [{width: 200,},
             {
                 view:"form", scroll:false,
+                id:"userForm",
+                name:"userForm",
                 width:500,
                 borderless:true,
+                url:function(){
+                    var user="gena";              //брать из session storage!!!
+                    return webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/userInf/"+user).then(function(data){
+                        if(data.json().success==true)
+                        return data.json();
+                    });},
                 elements:[
-
                     { view:"fieldset", label:"Личные данные",
 
                         body:{
                             rows:[
 
-                                { view:"text", label:"Фамилия"},
-                                { view:"text", label:"Имя"},
-                                { view:"text", label:"Отчество"},
-                                { view:"text", label:"Адрес"},
-                                { view:"text", label:"Телефон"},
-                                { view:"text", label:"Email"},
+                                { view:"text", label:"Фамилия",id:"lastName",name:"lastName",readonly:true},
+                                { view:"text", label:"Имя",id:"firstName",name:"firstName",readonly:true},
+                                { view:"text", label:"Отчество",id:"secondName",name:"secondName",readonly:true},
+                                { view:"text", label:"Адрес",id:"address",name:"address"},
+                                { view:"text", label:"Телефон",id:"phone",name:"phone"},
+                                { view:"text", label:"Email",id:"email",name:"email"},
                             ]
                         }},
 
-                             { view:"button", label:"Изменить" }
+                             { view:"button", label:"Изменить", click:editUserInf}
 
 
                 ]
@@ -152,6 +292,8 @@ var userInfo={
             {width:100},
             {
                 view:"form", scroll:false,
+                id:"pas",
+                name:"pas",
                 width:400,
                 borderless:true,
                 elements:[
@@ -160,15 +302,25 @@ var userInfo={
                         body:{
                             rows:[
 
-                                { view:"text", label:"Старый пароль", labelWidth:150},
-                                { view:"text", label:"Новый пароль", labelWidth:150},
-                                { view:"text", label:"Новый пароль", labelWidth:150},
+                                { view:"text", label:"Старый пароль", labelWidth:150,type:"password",id:"oldPas",name:"oldPas",required:true},
+                                { view:"text", label:"Новый пароль", labelWidth:150,type:"password",id:"newPas",name:"newPas",required:true},
+                                { view:"text", label:"Новый пароль", labelWidth:150,type:"password",id:"newPas2",name:"newPas2",required:true},
 
                             ]
                         }},
-                     { view:"button", label:"Изменить пароль" }
+                     { view:"button", label:"Изменить пароль",click:editPas}
 
-                ]
+                ],
+                rules: {
+                    newPas2: function (value) {
+                        if(value!=$$("newPas").getValue()){
+                            $$("pas").markInvalid("newPas2", "Пароль не совпадает");
+                            return false;
+                        }
+                        return true;
+                    }
+                }
+
             }
         ]
     },]
@@ -239,6 +391,7 @@ webix.ready(function(){
                                         view:"icon", icon:"fas fa-power-off",
                                         css:"exit",
                                         tooltip:"Выход",
+                                        click:"webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get('http://localhost:8080/userExit');"
                                     }
                                 ]
                             },

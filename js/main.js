@@ -96,7 +96,18 @@ var add= {id:"new_way",type: "space", rows:[
                     bottomPadding: 18,
                     width: 500,
                     value: "Минск",
-                    options:["one","two","three","four","five","six","seven","eight","nine","ten","eleven"],
+                    options: list,
+                    on:{
+                        'onItemClick':function () {
+                            webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/allPoints", function(text,data){
+                                var options = data.json().data;
+                                var list = $$("point2").getPopup().getList();
+                                list.clearAll();
+                                list.parse(options);
+                            });
+
+                        }
+                    }
                 },
                 {
                     view: "text",
@@ -404,6 +415,7 @@ var ways={
         {
             view: "datatable",
             id:"way_info",
+            name:"way_info",
             scrollX: false,
             columns:[
                 { id:"pos",    header:"Позиция" ,width:100},
@@ -423,26 +435,59 @@ var ways={
 };
 function confirmOrder() {
     row=this.data.$masterId.row;
-    var idOrder=$$("order_inf").getItem(row).number;
+    var idOrder=$$("order_inf").getItem(row).Id;
     webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/order/"+idOrder+"/confirm").then(function (result) {
         if (result.json().success == true) {
             webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
-            // добавить перегруз таблы или удалить строку без перегруза!
+            $$("order_inf").remove(row);
         } else {
             webix.message({type: 'error', text: result.json().message});
-        };})
+        };
+
+    })
 }
 function failOrder() {
     row=this.data.$masterId.row;
-    var idOrder=$$("order_inf").getItem(row).number;
+    var idOrder=$$("order_inf").getItem(row).Id;
     webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/order/"+idOrder+"/fail").then(function (result) {
         if (result.json().success == true) {
             webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
-            // добавить перегруз таблы  clear parse
+            $$("order_inf").remove(row);
         } else {
             webix.message({type: 'error', text: result.json().message});
         };})
 
+}
+function blolckUser() {
+    row=this.data.$masterId.row;
+    var login=$$("active_user").getItem(row).login;
+    webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/blockUser/"+login).then(function (result) {
+        if (result.json().success == true) {
+            $$("active_user").clearAll(true);
+            $$("block_user").clearAll(true);
+            $$("active_user").loadNext(-1,0);
+            $$("block_user").loadNext(-1,0);
+            webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+
+        } else {
+            webix.message({type: 'error', text: result.json().message});
+        };})
+
+}
+function unblockUser() {
+    row=this.data.$masterId.row;
+    var login=$$("block_user").getItem(row).login;
+    webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/unblockUser/"+login).then(function (result) {
+        if (result.json().success == true) {
+            $$("active_user").clearAll(true);
+            $$("block_user").clearAll(true);
+            $$("active_user").loadNext(-1,0);
+            $$("block_user").loadNext(-1,0);
+            webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+
+        } else {
+            webix.message({type: 'error', text: result.json().message});
+        };})
 }
 var orders ={
     id:"orders",
@@ -454,12 +499,17 @@ var orders ={
             id:"order_inf",
             scrollX: false,
             tooltip:true,
+            url:function(){
+                return webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/orders").then(function(data){
+                    return data.json();
+                });
+            },
             columns:[
-                { id:"number",header:"№" ,width:70,tooltip:false,},
-                { id:"date",   header:"Время",width:200,tooltip:false, },
-                { id:"way",   header:"ID маршрута",width:120 ,tooltip:false,},
-                { id:"cost",   header:"Стоимость",width:155 ,tooltip:false,},
-                { id:"customer",   header:"Клиент",width:155 ,tooltip:false,},
+                { id:"Id",header:"№" ,width:70,tooltip:false,},
+                { id:"Time",   header:"Время",width:200,tooltip:false, },
+                { id:"idWay",   header:"ID маршрута",width:120 ,tooltip:false,},
+                { id:"Price",   header:"Стоимость",width:155 ,tooltip:false,},
+                { id:"Client",   header:"Клиент",width:155 ,tooltip:false,},
                 { id: "ok", header: "&nbsp;", template: "{common.yourButton()}",  width:50,tooltip: "Подтвердить"},
                 { id: "del", header: "&nbsp;", template: "{common.del()}",  width:50,tooltip: "Отказ"},
 
@@ -486,13 +536,10 @@ var orders ={
                 }
             },
             data: [
-                { number:1, date:"25-10-2018 10:42:35 AM", way:10, cost:14600, customer:"ООО Продторг"},
-                { number:2, date:"25-10-2018 10:42:35 AM", way:3, cost:200, customer:"ООО Продторг"},
-                { number:3, date:"25-10-2018 10:42:35 AM", way:125, cost:300, customer:"ООО Продторг"},
-                { number:4, date:"25-10-2018 10:42:35 AM", way:50, cost:7700, customer:"ООО Продторг"},
-                { number:5, date:"25-10-2018 10:42:35 AM", way:8, cost:8500, customer:"ООО Продторг"},
-                { number:6, date:"25-10-2018 10:42:35 AM", way:2, cost:1200, customer:"ООО Продторг"},
-                { number:7, date:"25-10-2018 10:42:35 AM", way:8, cost:700, customer:"ООО Продторг"},
+                { Id:1, Time:"25-10-2018 10:42:35 AM", idWay:10, Price:14600, Client:"ООО Продторг"},
+                { Id:2, Time:"25-10-2018 10:42:35 AM", idWay:10, Price:14600, Client:"ООО Продторг"},
+                { Id:3, Time:"25-10-2018 10:42:35 AM", idWay:10, Price:14600, Client:"ООО Продторг"},
+
             ]
         },],
 
@@ -502,8 +549,6 @@ var us={
     type:'space',
     cols:[{},{
     rows:[
-        {height:30},
-
         {
             view: "toolbar",
             css:"header_user",
@@ -517,9 +562,14 @@ var us={
         {
             view: "activeTable",
             width:460,
-            height:500,
+            height:400,
             id:"active_user",
             scrollX: false,
+            url:function(){
+                return webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/activeUsers").then(function(data){
+                    return data.json();
+                });
+            },
             columns:[
                 { id:"login",    header:"Логин" ,width:100},
                 { id:"fio",   header:"ФИО" ,width:300 },
@@ -533,8 +583,8 @@ var us={
                     height:"32",
                     type:'icon',
                     icon:'fas fa-lock',
-                    tooltip:"Заблокировать"
-                    //click:delLine,
+                    tooltip:"Заблокировать",
+                    click:blolckUser,
                 },
             },
             data: [
@@ -561,6 +611,16 @@ var us={
             height:200,
             id:"block_user",
             scrollX: false,
+            url:function() {
+                return webix.ajax().headers({'Accept': 'application/json;charset=utf-8'}).get("http://localhost:8080/blockUsers").then(function (data) {
+                    return data.json();
+                });
+            },
+            dataFeed:function() {
+                return webix.ajax().headers({'Accept': 'application/json;charset=utf-8'}).get("http://localhost:8080/blockUsers").then(function (data) {
+                    return data.json();
+                });
+            },
             columns:[
                 { id:"login",    header:"Логин" ,width:100},
                 { id:"fio",   header:"ФИО" ,width:300 },
@@ -574,8 +634,8 @@ var us={
                     height:"32",
                     type:'icon',
                     icon:'fas fa-lock-open',
-                    tooltip:"Разблокировать"
-                    //click:delLine,
+                    tooltip:"Разблокировать",
+                    click:unblockUser,
                 },
             },
             data: [
