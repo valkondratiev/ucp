@@ -15,13 +15,19 @@ var managers={
                     view: "activeTable",
                     width:460,
                     height:400,
-                    id:"active_user",
+                    id:"active_managers",
+                    name:"active_managers",
                     scrollX: false,
-                    select:"row",
+                    select:false,
+                    url:function(){
+                        return webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/allActiveManagers").then(function(data){
+                            return data.json();
+                        });
+                    },
                     columns:[
-                        { id:"login",    header:"Логин" ,width:100},
-                        { id:"fio",   header:"ФИО" ,width:300 },
-                        { id: "block", header: "&nbsp;", template: "{common.yourButton()}",  width:40,},
+                        { id:"login",name:"login", header:"Логин" ,width:100},
+                        { id:"fio", name:"fio", header:"ФИО" ,width:300 },
+                        { id: "block",name:"block", header: "&nbsp;", template: "{common.yourButton()}",  width:40,},
                     ],
                     activeContent: {
                         yourButton: {
@@ -31,8 +37,8 @@ var managers={
                             height:"32",
                             type:'icon',
                             icon:'fas fa-lock',
-                            tooltip:"Заблокировать"
-                            //click:delLine,
+                            tooltip:"Заблокировать",
+                            click:lockManager,
                         },
                     },
                     data: [
@@ -44,6 +50,38 @@ var managers={
                 },
 
     ]
+}
+function lockManager() {
+    row=this.data.$masterId.row;
+    var login=$$("active_managers").getItem(row).login;
+    webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/blockManager/"+login).then(function (result) {
+        if (result.json().success == true) {
+            $$("active_managers").clearAll(true);
+            $$("block_manager").clearAll(true);
+            $$("active_managers").loadNext(-1,0);
+            $$("block_manager").loadNext(-1,0);
+            webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+
+        } else {
+            webix.message({type: 'error', text: result.json().message});
+        };})
+
+}
+function unlockManager() {
+    row=this.data.$masterId.row;
+    var login=$$("block_manager").getItem(row).login;
+    webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/unblockManager/"+login).then(function (result) {
+        if (result.json().success == true) {
+            $$("active_managers").clearAll(true);
+            $$("block_manager").clearAll(true);
+            $$("active_managers").loadNext(-1,0);
+            $$("block_manager").loadNext(-1,0);
+            webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+
+        } else {
+            webix.message({type: 'error', text: result.json().message});
+        };})
+    
 }
 var block={
     rows:[
@@ -59,15 +97,21 @@ var block={
             },
             {
                 view: "activeTable",
-                select:"row",
+                select:false,
                 width:460,
                 height:200,
-                id:"block_user",
+                id:"block_manager",
+                name:"block_manager",
+                url:function(){
+                    return webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get("http://localhost:8080/allBlockManagers").then(function(data){
+                        return data.json();
+                    });
+                },
                 scrollX: false,
                 columns:[
-                    { id:"login",    header:"Логин" ,width:100},
-                    { id:"fio",   header:"ФИО" ,width:300 },
-                    { id: "unblock", header: "&nbsp;", template: "{common.yourButton()}",  width:40,},
+                    { id:"login",name:"login",    header:"Логин" ,width:100},
+                    { id:"fio", name:"fio",   header:"ФИО" ,width:300 },
+                    { id: "unblock",name: "unblock", header: "&nbsp;", template: "{common.yourButton()}",  width:40,},
                 ],
                 activeContent: {
                     yourButton: {
@@ -77,8 +121,8 @@ var block={
                         height:"32",
                         type:'icon',
                         icon:'fas fa-lock-open',
-                        tooltip:"Разблокировать"
-                        //click:delLine,
+                        tooltip:"Разблокировать",
+                        click:unlockManager,
                     },
                 },
                 data: [
@@ -89,6 +133,21 @@ var block={
                 ]
             },]
 }
+function addManager(){
+    if( $$("form").validate()){
+        var formData=$$("form").getValues();
+        var manager = JSON.stringify(formData, "", "\t");
+        webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/addManager", manager).then(function (result) {
+            if (result.json().success == true) {
+                webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
+                $$("active_managers").clearAll(true);
+                $$("active_managers").loadNext(-1,0);
+            } else {
+                webix.message({type: 'error', text: result.json().message});
+            };});
+    };
+}
+
 webix.ready(function() {
     webix.ui({
         rows:[
@@ -107,6 +166,7 @@ webix.ready(function() {
                       icon:"fas fa-power-off",
                       css:"exit",
                       tooltip:"Выход",
+                      click:"webix.ajax().headers({'Accept':'application/json;charset=utf-8'}).get('http://localhost:8080/managerExit');"
                     }
                 ]
 
@@ -127,18 +187,20 @@ webix.ready(function() {
                 cols:[
                     {},
                     {view:"form", scroll:false,
+                        id:'form',
+                        name:"form",
                      width:300,
                      borderless:true,
                      elements:[
                      { view:"fieldset", label:"Добавить менеджера", body:{
                      rows:[
-                            { view:"text", label:"Логин"},
-                            { view:"text", label:"Пароль",type:"password"},
-                            { view:"text", label:"Имя"},
-                            { view:"text", label:"Фамилия"},
+                            { view:"text", label:"Логин",id:"login",name:"login",required:true},
+                            { view:"text", label:"Пароль",id:"pas",name:"pas",type:"password",required:true},
+                            { view:"text", label:"Имя",id:"name",name:"name",required:true},
+                            { view:"text", label:"Фамилия",id:"lastName",name:"lastName",required:true},
                                     ]
                                 }},
-                            { view:"button", label:"Добавить" , type:"form" },
+                            { view:"button", label:"Добавить" , type:"form",click:addManager },
 
                         ]},
 
