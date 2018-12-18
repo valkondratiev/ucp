@@ -4,6 +4,7 @@ function log(){
         console.log(formData);
         var log = JSON.stringify(formData, "", "\t");
         console.log(log);
+        webix.storage.session.put('login', $$('login').getValue());
         webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/userAuth", log).then(function (result) {
             if (result.json().success == true) {
                 webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
@@ -18,6 +19,7 @@ function reg(){
         console.log(formData);
         var reg = JSON.stringify(formData, "", "\t");
         console.log(reg);
+        webix.storage.session.put('login', $$('log').getValue());
         webix.ajax().headers({'Content-Type':'application/json;charset=utf-8','Accept':'application/json;charset=utf-8'}).post("http://localhost:8080/userReg", reg).then(function (result) {
             if (result.json().success == true) {
                 webix.message({type: 'debug', text: "Зaпрос успешно добавлен"});
